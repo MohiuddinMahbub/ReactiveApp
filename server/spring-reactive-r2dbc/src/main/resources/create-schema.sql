@@ -1,0 +1,20 @@
+
+/****** Object:  Table [dbo].[person]    Script Date: 1/13/2020 12:41:00 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE dbo.person (
+    id BIGINT NOT NULL IDENTITY(1,1),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    company VARCHAR(100),
+ CONSTRAINT [PK_dbo.person] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+

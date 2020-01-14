@@ -1,0 +1,174 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- http://localhost:8081/index.html -->
+<title>Artists</title>
+
+<style>
+body {
+	font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+	background-color: lightgrey;
+}
+
+h1 {
+	color: orange;
+}
+
+h2 {
+	color: red;
+}
+
+.wrapper {
+	display: grid;
+	grid-template-areas: "chatInput chats";
+	grid-template-rows: 1fr 1fr;
+}
+
+.chatInput {
+	padding-left: 10%;
+	grid-area: chatInput;
+}
+
+.chats {
+	grid-area: chats;
+}
+</style>
+</head>
+
+<body>
+
+	<!-- <h1 style="text-align: center">Chats</h1> -->
+
+	<div class="wrapper">
+		<div class="chats">
+			<h2>List of data</h2>
+			<ul style="list-style: none;" id="chats"></ul>
+		</div>
+		<div  class="chatInput">
+			<input id="sendMessage" type="button" value="Close"
+				onclick="closeEvtSource();" />
+		</div>
+		<!-- <div class="chatInput">
+			<h2>Enter chat messages here</h2>
+			<div>
+				<input type="text" placeholder="<fill in username>" id="user"
+					style="width: 150px;">
+			</div>
+			<div>
+				<input type="text" placeholder="<type your message here>"
+					id="messageText" style="width: 150px;">
+			</div>
+
+			<input id="sendMessage" type="button" value="Send chat message"
+				onclick="postMessage();" />
+		</div> -->
+	</div>
+
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://unpkg.com/rxjs/bundles/rxjs.umd.min.js"></script>
+	<script type="text/javascript">
+		var dataList = new Array();
+		var evtSource;
+				
+		if (!!window.EventSource) {
+			const { Observable } = rxjs;
+			const chatObservable = Observable.create(observer => {
+				evtSource = new EventSource('http://localhost:8081/persons/live');
+				evtSource.onmessage = e => {
+					const chatMessage = JSON.parse(e.data);
+					addChatMessage(chatMessage);
+					/*if (chatMessage.id === 5) {
+						console.log(chatMessage.id);
+						evtSource.close();
+						observer.complete();
+						return;
+					}*/
+					observer.next(chatMessage);
+				}
+				evtSource.onerror = e => observer.error(e);
+			});
+
+			chatObservable.subscribe(
+				chatMessage => addChatMessage(chatMessage),
+				error => console.log('Gotten error in observable stream ' + error),
+				() => console.log('Observable stream got closed.')
+			);
+		} else {
+			alert("The browser doesn't support SSE");
+		}
+
+		function addChatMessage(chatMessage) {
+			
+			if(dataList.filter(
+					function(e) {
+						return e.id === chatMessage.id;
+					}
+				).length > 0) {
+				/* dataList contains the element we're looking for */
+				console.log('data exists');
+			}
+			else{
+				
+				dataList.push(chatMessage);
+
+				const eventListChats = document.querySelector("#chats");
+
+				const newElement = document.createElement("li");
+				
+				let userElement = document.createElement("p");
+				userElement.style.cssText = "color:red; font-weight: bold"; 
+				userElement.textContent = chatMessage.firstName + " " + chatMessage.lastName + "=>" + chatMessage.company;
+				  
+				/* let messageElement = document.createElement("p");
+				messageElement.style.cssText = "color:orange; font-style: italic"; 
+				messageElement.textContent = chatMessage;
+				newElement.append(messageElement); */
+				 
+				newElement.append(userElement);
+
+				eventListChats.prepend(newElement);
+			}
+		}
+
+		/* function postMessage() {
+			event.preventDefault();
+
+			let user = document.getElementById('user').value;
+			let messageElement = document.getElementById('messageText');
+			let messageText = messageElement.value
+
+			fetch('http://localhost:8080/api/chats', {
+				method: 'POST',
+				headers : {
+					'Content-Type': 'application/json',
+				},
+				body:JSON.stringify({user:user, text:messageText})
+			}).then((res) => res.json())
+			.then((data) =>  console.log(data))
+			.catch((err)=>console.log(err))
+
+			messageElement.value = '';
+		} 
+
+		// make sure that pressing enter also posts the message
+		document.onkeypress = keyPress;
+		function keyPress(e) {
+			const x = e || window.event;
+			const key = (x.keyCode || x.which);
+			if(key == 13 || key == 3){
+				postMessage();
+			}
+		}*/
+		function closeEvtSource(e) {
+			if(evtSource.readyState !== EventSource.CLOSED){
+				evtSource.close();
+			}
+		}
+		</script>
+</body>
+</html>
